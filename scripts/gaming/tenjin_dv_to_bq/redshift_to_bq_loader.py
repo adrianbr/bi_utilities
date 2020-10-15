@@ -109,7 +109,7 @@ def _make_merge_query(increment_table_id, target_table_id, merge_columns_list):
 
 
 
-    merge_condition = " AND ".join(["t.{col} = i.{col}".format( col = re.sub("[^0-9a-zA-Z]+", "_", colname.lower())) for column in merge_columns_list])
+    merge_condition = " AND ".join(["t.{col} = i.{col}".format( col = re.sub("[^0-9a-zA-Z]+", "_", column.lower())) for column in merge_columns_list])
 
     when_clause_values = ",".join(["t.{col} = i.{col}".format(col=col) for col in columns_list])
 
