@@ -3,7 +3,7 @@ from google.cloud import storage
 import os
 
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account_secret.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "creds.json"
 
 
 def _cloud_storage_upload(local_file, bucket, filename_on_bucket):
@@ -16,16 +16,18 @@ def _cloud_storage_upload(local_file, bucket, filename_on_bucket):
     print('uploaded ', bucket, filename_on_bucket)
 
 
-def _cloud_storage_to_bq(bucket, filename_on_bucket, database, table_name, date_partition_column=None):
+def _cloud_storage_to_bq(bucket, filename_on_bucket, dataset, table_name, date_partition_column=None):
 
 
     client = bigquery.Client()
-    table_id = "acrm-analytics-poc.data_exploration_increment.{}_{}".format(database, table_name)
+    table_id = "{}.{}".format(dataset, table_name)
 
     if date_partition_column is not None:
         partition_dict = {'object_type': bigquery.table.TimePartitioning(date_partition_column),
                           'field': date_partition_column
         }
+    else:
+        partition_dict = {}
 
     job_config = bigquery.LoadJobConfig(
         autodetect=True,
@@ -46,8 +48,20 @@ def _cloud_storage_to_bq(bucket, filename_on_bucket, database, table_name, date_
     print("Loaded {} rows. to {}".format(destination_table.num_rows, table_id))
 
 
-def local_json_to_bq(local_file, bucket, filename_on_bucket, database, table_name, date_partition_column=None):
+def local_json_to_bq(local_file, bucket, filename_on_bucket, dataset, table_name, date_partition_column=None):
 
     _cloud_storage_upload(local_file, bucket, filename_on_bucket)
 
-    _cloud_storage_to_bq(bucket, filename_on_bucket, database, table_name, date_partition_column=date_partition_column)
+    _cloud_storage_to_bq(bucket, filename_on_bucket, dataset, table_name, date_partition_column=date_partition_column)
+
+
+if __name__ == "__main__":
+    config = {
+    'local_file' : 'test.json',
+    'bucket' : 'datateam_bucket',
+    'filename_on_bucket' : 'test.json',
+    'dataset' : 'get-data-team.tenjin_dv_test',
+    'table_name' : 'test_tbl'
+    }
+
+    local_json_to_bq(**config )
