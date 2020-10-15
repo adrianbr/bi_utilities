@@ -36,7 +36,9 @@ def _redshift_select_to_dict(query, redshift_conn=default_redshift_conn):
 
 def _rows_to_json_file(rows, filename):
     with open(filename, 'w') as f:
-            json.dump(rows, f)
+        for row in rows:
+            json.dump(row, f, default=str)
+            f.write('\n')
     return filename
 
 
