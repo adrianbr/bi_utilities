@@ -2,8 +2,8 @@ from google.cloud import bigquery
 from google.cloud import storage
 import os
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="creds.json"
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "creds.json"
 
 
 def _cloud_storage_upload(local_file, bucket, filename_on_bucket):
@@ -32,7 +32,7 @@ def _cloud_storage_to_bq(bucket, filename_on_bucket, dataset, table_name, date_p
     job_config = bigquery.LoadJobConfig(
         autodetect=True,
         source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
-        write_disposition=bigquery.WriteDisposition.WRITE_APPEND,  # WRITE_TRUNCATE
+        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE, #WRITE_APPEND,
         **partition_dict
     )
 
