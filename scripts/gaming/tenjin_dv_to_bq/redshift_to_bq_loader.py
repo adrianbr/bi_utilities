@@ -6,6 +6,7 @@ from credential import default_redshift_conn
 from google.cloud import bigquery
 import os
 import re
+import json
 
 #suggest creating 2 databases, 1 for the increment tables
 
@@ -32,7 +33,7 @@ def full_copy_schema(schema_name='tenjin'):
     for table in tables_list:
         #TODO - remove limit
         #query = "select * from {}.{} limit 10000".format(schema_name, table)
-        query = "select count(*) from {}.{} limit 10000".format(schema_name, table) # how big are the tables? can it be done in 1 load?
+        query = "select * from {}.{}".format(schema_name, table) # how big are the tables? can it be done in 1 load? #no
         print(query)
         local_filename = table + '.json'
         bucket = 'datateam_bucket'
@@ -48,7 +49,7 @@ def full_copy_schema(schema_name='tenjin'):
 def copy_table_increment_on_column(schema_name, table_name, increment_column, bucket,dataset ,rows_per_increment=1000, increment_prefix=None):
     #check max value for the loaded column
 
-    local_filename = table_config['table_name'] + '.json'
+    local_filename = table_name + '.json'
     filename_on_bucket = '{}/{}/{}/{}'.format(schema_name, datetime.now().strftime("%Y/%m/%d"), table_name, local_filename)
 
     #try to get it from already loaded table, if not get first value from source
@@ -129,8 +130,30 @@ def _make_merge_query(increment_table_id, target_table_id, merge_columns_list):
     print("Merge_query:" , merge_query)
     return merge_query
 
+def merge_bq_tables(increment_table_id, target_table_id, merge_columns_list):
+    """merge tables on merge columns"""
+    merge_query = _make_merge_query(increment_table_id, target_table_id, merge_columns_list)
+    client = bigquery.Client()
+    job = client.query(merge_query)  # Make an API request.
+    job.result()  # Wait for the job to complete.
+    print("Merged into target table.")
 
-def copy_table_incrementally_on_column(schema_name, table_name, increment_column, merge_columns_list, bucket, dataset, rows_per_increment=1000, increment_prefix='z_increment_'):
+
+def merge_bq_increment_from_redshift_query(query,  bucket, schema_name, dataset, table_name,merge_columns_list,
+                                           redshift_conn=default_redshift_conn, date_partition_column=None, increment_prefix ='z_increment_', **kwargs):
+    """query redshift, create temp increment table, merge increment table to target table"""
+    local_filename = table_name + '.json'
+    increment_table_id = "{}.{}".format(dataset, increment_prefix + table_name)
+    target_table_id = "{}.{}".format(dataset, table_name)
+    filename_on_bucket = '{}/{}/{}/{}'.format(schema_name, datetime.now().strftime("%Y/%m/%d"), table_name, local_filename)
+
+    make_bq_table_from_redshift_query(query, local_filename, bucket, filename_on_bucket, dataset, table_name,
+                                          date_partition_column=date_partition_column, redshift_conn=redshift_conn)
+
+    merge_bq_tables(increment_table_id, target_table_id, merge_columns_list)
+
+
+def copy_table_incrementally_on_column(schema_name, table_name, increment_column, merge_columns_list, bucket, dataset, rows_per_increment=1000, increment_prefix='z_increment_', **kwargs):
     data_left_to_copy = True
     while data_left_to_copy:
         #copy until there is no more
@@ -152,8 +175,20 @@ def copy_table_incrementally_on_column(schema_name, table_name, increment_column
         print("Merged into target table.")
 
 
+def copy_table_configs(table_configs):
+    for table_config in table_configs:
+        if table_config['increment_method'] == 'query':
+            print("Copying from config: ", json.dumps(table_config))
+            merge_bq_increment_from_redshift_query(**table_config)
+            print("Copying table finished")
+        elif table_config['increment_method'] == 'increment_column':
+            print("Copying from config: ", json.dumps(table_config))
+            copy_table_incrementally_on_column(**table_config)
+            print("Copying table finished")
+
 if __name__ == "__main__":
     table_config = {}
+    table_config['increment_method'] = 'increment_column'
     table_config['schema_name'] = 'tenjin'
     table_config['table_name'] = 'daily_ad_revenue'
     table_config['increment_column'] = 'id'
