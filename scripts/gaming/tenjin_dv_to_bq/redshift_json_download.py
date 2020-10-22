@@ -16,7 +16,7 @@ default_redshift_conn=credential.default_redshift_conn
 
 def _redshift_select_to_dict(query, redshift_conn=default_redshift_conn):
     ''' query redshift and return json '''
-    print(redshift_conn)
+    #print(redshift_conn)
 
     conn = psycopg2.connect(**redshift_conn)
 

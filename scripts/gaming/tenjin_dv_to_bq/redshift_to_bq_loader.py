@@ -63,6 +63,18 @@ def copy_table_increment_on_column(schema_name, table_name, increment_column, bu
         # last_val is None if target table doesn't exist yet
         last_val = rows[0][0]
 
+        increment_query = """select * 
+                             from {schema_name}.{table_name} 
+                             where {increment_column} > '{last_value}'
+                             order by {increment_column} asc
+                             limit {rows_per_increment}
+             """.format(schema_name=schema_name,
+                        table_name=table_name,
+                        increment_column=increment_column,
+                        last_value=last_val,
+                        rows_per_increment=rows_per_increment
+                        )
+
     #but if the table is not found then take it from source start:
     except NotFound as error:
         print("Table not found.")
@@ -71,23 +83,19 @@ def copy_table_increment_on_column(schema_name, table_name, increment_column, bu
         print(last_val_res)
         last_val = last_val_res[0]['inc_val']
 
+        increment_query = """select * 
+                             from {schema_name}.{table_name} 
+                             where {increment_column} >= '{last_value}'
+                             order by {increment_column} asc
+                             limit {rows_per_increment}
+             """.format(schema_name=schema_name,
+                        table_name=table_name,
+                        increment_column=increment_column,
+                        last_value=last_val,
+                        rows_per_increment=rows_per_increment
+                        )
+
     print('last_val: ',last_val)
-    #make_bq_table_from_redshift_query()
-
-
-    #now we have the last value so we can load an increment
-    #make increment query
-    increment_query = """select * 
-                        from {schema_name}.{table_name} 
-                        where {increment_column} > '{last_value}'
-                        order by {increment_column} asc
-                        limit {rows_per_increment}
-        """.format(schema_name=schema_name,
-                   table_name=table_name,
-                   increment_column=increment_column,
-                   last_value=last_val,
-                   rows_per_increment=rows_per_increment
-                   )
 
     #load to an increment table, check if there is still data left to load
     if increment_prefix:
@@ -163,16 +171,17 @@ def copy_table_incrementally_on_column(schema_name, table_name, increment_column
         data_left_to_copy = copy_table_increment_on_column(schema_name, table_name, increment_column, bucket,dataset,
                                                            rows_per_increment=rows_per_increment,
                                                            increment_prefix =increment_prefix)
+        if data_left_to_copy:
 
-        #try make merge query, if target table oes not exist then return none, so we know and can copy it instead.
-        merge_query = _make_merge_query(increment_table_id, target_table_id, merge_columns_list)
-        client = bigquery.Client()
-        if merge_query:
-            job = client.query(merge_query)  # Make an API request.
-        else:
-            job = client.copy_table(increment_table_id, target_table_id)
-        job.result()  # Wait for the job to complete.
-        print("Merged into target table.")
+            #try make merge query, if target table oes not exist then return none, so we know and can copy it instead.
+            merge_query = _make_merge_query(increment_table_id, target_table_id, merge_columns_list)
+            client = bigquery.Client()
+            if merge_query:
+                job = client.query(merge_query)  # Make an API request.
+            else:
+                job = client.copy_table(increment_table_id, target_table_id)
+            job.result()  # Wait for the job to complete.
+            print("Merged into target table.")
 
 
 def copy_table_configs(table_configs):
