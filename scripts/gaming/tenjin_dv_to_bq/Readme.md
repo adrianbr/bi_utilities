@@ -51,8 +51,11 @@ For Redshift:
 Edit the `credential.py` file
 
 ## Configuring the copy
-`table_load_config.py` contains an example config with some explanations.
-This config is a list of parameter dictionaries based on which the copy is performed, such as the query or tablename, increment columns, bucket to use, etc
+`table_load_config.py` contains the table config. If you wish to use a custom loading strategy or a query-based lookback, 
+you can edit this config according to the examples from the config file
+
+This config is a list of parameter dictionaries based on which the copy is performed, 
+such as the query or tablename, increment columns, bucket to use, etc
 
 ##starting the load
 Once credentials and config are finalised, start the load by simply running in your terminal
