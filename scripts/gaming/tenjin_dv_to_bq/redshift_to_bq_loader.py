@@ -116,8 +116,6 @@ def _make_merge_query(increment_table_id, target_table_id, merge_columns_list):
     except:
         return None
 
-
-
     merge_condition = " AND ".join(["t.{col} = i.{col}".format( col = re.sub("[^0-9a-zA-Z]+", "_", column.lower())) for column in merge_columns_list])
 
     when_clause_values = ",".join(["t.{col} = i.{col}".format(col=col) for col in columns_list])
@@ -186,14 +184,17 @@ def copy_table_incrementally_on_column(schema_name, table_name, increment_column
 
 def copy_table_configs(table_configs):
     for table_config in table_configs:
+
         if table_config['increment_method'] == 'query':
             print("Copying from config: ", json.dumps(table_config))
             merge_bq_increment_from_redshift_query(**table_config)
             print("Copying table finished")
+
         elif table_config['increment_method'] == 'increment_column':
             print("Copying from config: ", json.dumps(table_config))
             copy_table_incrementally_on_column(**table_config)
             print("Copying table finished")
+
 
 if __name__ == "__main__":
     table_config = {}

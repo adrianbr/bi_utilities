@@ -46,3 +46,8 @@ def redshift_query_to_file(query, filename, redshift_conn=default_redshift_conn)
     json_data = _redshift_select_to_dict(query, redshift_conn=redshift_conn)
     filename = _rows_to_json_file(json_data, filename)
     return filename
+
+
+
+if __name__ == "__main__":
+    redshift_query_to_file('select 10 as col2', 'second_test.json')
