@@ -10,6 +10,28 @@ The copier can handle 3 types of increment scenarios:
 2. Increment on column last value + merge on PK columns
 3. Take a custom query for increment (such as last 30d or even a complex select) and merge it on PK columns.
 
+Ultimately, all methods run a query and retrieve data which is then saved as a table (and merged to a target)
+
+
+Why the above scenarios? 
+
+1. The full load is not exposed to the config but you can call it directly from redshift_to_bq_loader.full_copy_schema
+the use case is to copy the data once entirely for an ad hoc analysis or for incrementing on it later.
+
+the data goes from Redshift via select -> Local file (json) -> to gogole storage -> Bigquery target table
+
+2. The increment on column value checks the loaded table (if exists) and only takes the new rows. 
+It then merges them though an upsert-like transaction. This way we are economical about copy time and resources.
+
+the data goes from Redshift via select -> Local file (json) -> to gogole storage -> Bigquery increment table -> (IDEMPOTENT MERGE) Bigquery target table
+
+3. Because some tables are better loaded by custom rules (such as last 30d, or any other filters) 
+or because you might want to copy only some columns, or your own aggregated metric resulting from a query, 
+we can use this method that takes a query output and treats it as a table (as for point 2)
+
+the data flow is the same as for point 3
+
+
 # How it works
 ##For the last value based copy:
 1. Last value is read from the table in BQ, if table does not exist, then we take the first (min) value from redshift for the table
@@ -25,7 +47,6 @@ The copier can handle 3 types of increment scenarios:
 
 ##possible improvements:
 - for the tables that are loaded based on a query from tenjin dv, first check the updated_at table to see if there is anything new to load.
-
 
 
 #necessary resources:
@@ -56,6 +77,7 @@ you can edit this config according to the examples from the config file
 
 This config is a list of parameter dictionaries based on which the copy is performed, 
 such as the query or tablename, increment columns, bucket to use, etc
+
 
 ##starting the load
 Once credentials and config are finalised, start the load by simply running in your terminal
