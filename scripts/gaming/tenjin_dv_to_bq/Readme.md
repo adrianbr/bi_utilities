@@ -60,15 +60,11 @@ in the folder with the script. (use the terminal command `pwd to confirm you are
 ### For the query based copy all things are the same except 
 1. An increment is selected based on a custom query passed into the config.`
 
-### Possible improvements
-- for the tables that are loaded based on a query from Tenjin DataVault, first check the updated_at table to see if there is anything new to load.
-
 # Setup
 
 ### Requirements
 
-1. Python environment to run the code. Since it copies large files, a small cloud function might not suffice. The job does not require significant compute, but needs ram and disk to fit the data slices. The only way to avoid transfer through the local environment is to use the specialised google service 
-https://cloud.google.com/storage-transfer/docs/create-manage-transfer-program
+1. Python environment to run the code. Since it copies large files, a small cloud function might not suffice. The job does not require significant compute, but needs ram and disk to fit the data slices. The only way to avoid transfer through the local environment is to use the [specialised Google Service](https://cloud.google.com/storage-transfer/docs/create-manage-transfer-program)
 
 2. Google storage bucket (or multiple, a different one can be passed per table)
 
@@ -76,9 +72,8 @@ https://cloud.google.com/storage-transfer/docs/create-manage-transfer-program
 
 ### Credentials
 
-For GCP:
-https://cloud.google.com/docs/authentication/getting-started
-you must make sure to give the following permissions in IAM
+For Google Cloud Pplatform see the [authentication docs here](https://cloud.google.com/docs/authentication/getting-started):
+You must make sure to give the following permissions in IAM
 ` BigQuery Admin,
 Storage Admin,
 Storage Object Admin`
@@ -87,3 +82,7 @@ You might be able to restrict them more if need be.
 
 For Redshift:
 Edit the `credential.py` file
+
+# Iteration and Feedback, 
+### Possible improvements
+- for the tables that are loaded based on a query from Tenjin DataVault, first check the updated_at table to see if there is anything new to load.
