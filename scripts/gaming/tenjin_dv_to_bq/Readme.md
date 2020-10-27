@@ -26,9 +26,9 @@ the use case is to copy the data once entirely for an ad hoc analysis or for inc
 The data goes from Redshift via select -> Local file (json) -> to gogole storage -> Bigquery target table
 
 2. The **increment on column value** checks the loaded table (if exists) and only takes the new rows. 
-It then merges them though an upsert-like transaction. This way we are economical about copy time and resources.
+It then merges them though an upsert-like transaction. This way we are economical about copy time and resources, and ensure idempotency in the event of partial or doubled copy runs.
 
-The data goes from Redshift via select -> Local file (json) -> to gogole storage -> Bigquery increment table -> (IDEMPOTENT MERGE) Bigquery target table
+The data goes from Redshift via select -> Local file (json) -> to google storage -> Bigquery increment table -> (IDEMPOTENT MERGE) Bigquery target table
 
 3. Because some tables are **better loaded by custom rules** (such as last 30d, or any other filters) or because you might want to copy only some columns, or your own aggregated metric resulting from a query, we can use this method that takes a query output and treats it as a table (as for point 2). The data flow is the same as for point 3.
 
@@ -72,7 +72,7 @@ in the folder with the script. (use the terminal command `pwd to confirm you are
 
 ### Credentials
 
-For Google Cloud Pplatform see the [authentication docs here](https://cloud.google.com/docs/authentication/getting-started):
+For Google Cloud Platform see the [authentication docs here](https://cloud.google.com/docs/authentication/getting-started):
 You must make sure to give the following permissions in IAM
 ` BigQuery Admin,
 Storage Admin,
@@ -86,3 +86,4 @@ Edit the `credential.py` file
 # Iteration and Feedback, 
 ### Possible improvements
 - for the tables that are loaded based on a query from Tenjin DataVault, first check the updated_at table to see if there is anything new to load.
+- distribution in BQ (partially implemented)
