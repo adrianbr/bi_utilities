@@ -16,7 +16,7 @@ Typically Tenjin clients who use BigQuery for data warehousing use this [advice]
 "Increment scenarios", simplified, mean that you only look for data that has changed. You do not do full unloads any longer and you do not need to use/pay for AWS S3 or other tools. 
 
 - Less dependency in ETL on Tenjin DataVault updates, less overhead for engineers, fresher data
-Typically clients start using DataVault by following this [ETL advice](https://help.tenjin.io/t/datavault-updates-schedule/3528) and trigger their ETL job around 7AM UTC and then later at 1PM UTC. Data engineers have to monitor when an ETL has finished. With this database copier clients become less reliant on Tenjin's update schedule. They can run the code, say, 12 times a day. 
+Typically clients start using DataVault by following this [ETL advice](https://help.tenjin.io/t/datavault-updates-schedule/3528) and trigger their ETL job around 7AM UTC and then later at 1PM UTC. Data engineers have to monitor when an ETL has finished and use a per-database copy checkpoint. With this database copier clients become less reliant on Tenjin's update schedule and an intrerupted copy will be able to resume from the last incremented table checkpoint. They can run the code, say, 12 times a day, or they can stop it mid-loading and resume later. 
 
 # How-to: Why the above 3 scenarios? 
 
