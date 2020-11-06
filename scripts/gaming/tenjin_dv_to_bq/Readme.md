@@ -87,3 +87,4 @@ Edit the `credential.py` file
 ### Possible improvements
 - for the tables that are loaded based on a query from Tenjin DataVault, first check the updated_at table to see if there is anything new to load.
 - distribution in BQ (partially implemented)
+- sharding of the copied increment (currently incrementing based on WHERE - but we could also interate over the increment for loading with a limit-offset, to minimize necessary local space requirements for the transfer).
