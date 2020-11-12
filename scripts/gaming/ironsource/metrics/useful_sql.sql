@@ -8,6 +8,7 @@ with ironsource_metrics as
     cast(date as date) as date,
     -- in case name changes, take only one of them.
     max(applicationName) as application_name,
+    max(os) as os,
     --metrics
     sum(spend) as spend_is,
     sum(completions) as completions_is,
@@ -23,6 +24,7 @@ with ironsource_metrics as
   site_id,
   c.name as campaign_name,
   date ,
+  max(n.name) as ad_network_name,
   --metrics:
   sum(tracked_impressions) as tracked_impressions,
   sum(tracked_clicks) as tracked_clicks,
@@ -36,9 +38,12 @@ with ironsource_metrics as
   from `get-data-team.tenjin_dv_test.reporting_metrics` r
 left join `get-data-team.tenjin_dv_test.campaigns` c
   on c.id = r.campaign_id
+left join `get-data-team.tenjin_dv_test.ad_networks` n
+  on n.id = r.ad_network_id
 group by 1,2,3,4)
 select
     im.application_name,
+    im.os,
     tm.*,
     im.spend_is,
     im.completions_is,
@@ -46,7 +51,7 @@ select
     im.clicks_is,
     im.installs_is
 from tenjin_metrics as tm
-left join ironsource_metrics as im
+inner join ironsource_metrics as im
 on im.country = tm.country
 and im.site_id = tm.site_id
 and im.campaign_name = tm.campaign_name
