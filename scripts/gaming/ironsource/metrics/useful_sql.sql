@@ -25,6 +25,7 @@ with ironsource_metrics as
   c.name as campaign_name,
   date ,
   max(n.name) as ad_network_name,
+  max(a.name) as game_name,
   --metrics:
   sum(tracked_impressions) as tracked_impressions,
   sum(tracked_clicks) as tracked_clicks,
@@ -40,6 +41,8 @@ left join `get-data-team.tenjin_dv_test.campaigns` c
   on c.id = r.campaign_id
 left join `get-data-team.tenjin_dv_test.ad_networks` n
   on n.id = r.ad_network_id
+left join `get-data-team.tenjin_dv_test.apps` a
+  on a.id = r.app_id
 group by 1,2,3,4),
 tenjin_cohort_metrics as
   (select
@@ -82,7 +85,7 @@ select
     tcm.cohort_revenue_d7,
     tcm.cohort_revenue_d14,
     tcm.cohort_revenue_d30,
-     tcm.cohort_revenue_total
+    tcm.cohort_revenue_total
 from tenjin_metrics as tm
 inner join ironsource_metrics as im
 on im.country = tm.country
