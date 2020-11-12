@@ -1,4 +1,4 @@
-create view `get-data-team.tenjin_dv_test.view_tenjin_ironsource_metrics` as
+create or replace view `get-data-team.tenjin_dv_test.view_tenjin_ironsource_metrics` as
 with ironsource_metrics as
   (select
     --dimensions
@@ -6,6 +6,8 @@ with ironsource_metrics as
     cast(applicationId as string) as site_id,
     campaignName as campaign_name,
     cast(date as date) as date,
+    -- in case name changes, take only one of them.
+    max(applicationName) as application_name,
     --metrics
     sum(spend) as spend_is,
     sum(completions) as completions_is,
@@ -36,6 +38,7 @@ left join `get-data-team.tenjin_dv_test.campaigns` c
   on c.id = r.campaign_id
 group by 1,2,3,4)
 select
+    im.application_name,
     tm.*,
     im.spend_is,
     im.completions_is,
