@@ -92,7 +92,7 @@ def merge_bq_tables(increment_table_id, target_table_id, drop_increment_after_fi
 def local_ironscr_metrics_file_to_bq(local_file, bucket, filename_on_bucket, dataset, table_name, date_partition_column='date'):
     increment_tablename = 'z_temporary_increment_' + table_name
 
-    #_cloud_storage_upload(local_file, bucket, filename_on_bucket)
+    _cloud_storage_upload(local_file, bucket, filename_on_bucket)
 
 
     _cloud_storage_to_bq(bucket, filename_on_bucket, dataset, increment_tablename, date_partition_column=date_partition_column)
