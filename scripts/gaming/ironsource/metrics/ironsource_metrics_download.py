@@ -77,12 +77,10 @@ if __name__ == "__main__":
     secretkey = os.environ.get('sc1')
     refreshtoken = os.environ.get('sc2')
 
-    metrics = get_ironsrc_metrics(token, '2020-10-30', '2020-10-30')
+    metrics = get_ironsrc_metrics_file(secretkey, refreshtoken, '2020-10-30', '2020-10-30')
     #print(metrics.encode('utf-8'))
     print('rows:',len(metrics))
 
-    fn = _rows_to_json_file(metrics, 'test.json')
-    print(fn)
     #for row in metrics:
         #print(json.dumps(row))
     #do loading logic

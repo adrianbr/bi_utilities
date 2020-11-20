@@ -13,7 +13,7 @@ start_date = (date.today() - timedelta(days=3)).strftime('%Y-%m-%d')
 print(start_date)
 
 
-filename = 'metrics.json'#ironsource_metrics_download.get_ironsrc_metrics_file(secretkey, refreshtoken, start_date,end_date)
+filename = ironsource_metrics_download.get_ironsrc_metrics_file(secretkey, refreshtoken, start_date,end_date)
 bucket = 'datateam_bucket'
 filename_on_bucket = filename
 dataset = 'get-data-team.tenjin_dv_test'
