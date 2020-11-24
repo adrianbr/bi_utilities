@@ -1,6 +1,7 @@
 import requests 
 import json
 from datetime import datetime, timedelta
+import os
 
 def get_bearer_token(secretkey, refreshtoken):
     """https://developers.ironsrc.com/ironsource-mobile/air/authentication/#step-1"""
@@ -21,9 +22,9 @@ def get_ironsrc_appkeys(token_):
     url_request = "https://platform.ironsrc.com/partners/publisher/applications/v5?"
 
     resp = requests.get(url_request, headers=headers)
-    #print(resp.text)
+    print(resp.text)
     data = json.loads(resp.text)
-    appkeys = [row.get('appKey') for row in data]
+    appkeys = [{'key':row.get('appKey'), 'name':row.get('appName')} for row in data]
 
     return appkeys
 
@@ -52,12 +53,13 @@ def download_ironsrc_data(secretkey, refreshtoken, appkey, date = None):
         yesterday = datetime.now()  - timedelta(days=1)
         date = yesterday.strftime('%Y-%m-%d')
 
-    urls = get_ironsrc_data_url(token, appkey, date= date)
+    urls = get_ironsrc_data_url(token, appkey['key'], date= date)
     filenames = []
     if urls is not None:
         for idx in range(0, len(urls)):
             url = urls[idx]
-            filename = f'ironsource_revenue_{date}_{appkey}_part{idx}.gz'
+            appname = appkey["name"].replace('_','--') # need to use as separator later
+            filename = f'ironsource_revenue_{date}_{appkey["name"]}_part{idx}.gz'
             filedata = requests.get(url)
             with open(filename, 'wb') as f:
                 f.write(filedata.content)
@@ -78,12 +80,13 @@ def download_ironscr_data_all_games(secretkey, refreshtoken):
 
 
 if __name__ == "__main__":
-    secretkey = ''
-    refreshtoken = ''
+    secretkey = os.environ.get('sc1')
+    refreshtoken = os.environ.get('sc2')
     #get auth token
     token = get_bearer_token(secretkey, refreshtoken)
     #get game ids
-    appkeys = get_ironsrc_appkeys(token)
+    appkey_dict = get_ironsrc_appkeys(token)
+    appkeys = [key['key']for key in appkey_dict]
     #for each game download files
     #appkey = 'd39824dd'
     appkey = appkeys[0]
