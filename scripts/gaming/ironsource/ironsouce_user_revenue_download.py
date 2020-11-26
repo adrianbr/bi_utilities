@@ -58,8 +58,9 @@ def download_ironsrc_data(secretkey, refreshtoken, appkey, date = None):
     if urls is not None:
         for idx in range(0, len(urls)):
             url = urls[idx]
-            appname = ''.join(char for char in appkey["name"] if char.isalnum()) # need to use as separator later
+            appname = appkey["name"].replace("'", '').replace('_','--') # escape and replace separator if exists
             filename = f'ironsource_revenue_{date}_{appname}_part{idx}.gz'
+            #filename = f'ironsource_revenue_{date}_{ppkey['key']}_part{idx}.gz' # if you want the key instead
             filedata = requests.get(url)
             with open(filename, 'wb') as f:
                 f.write(filedata.content)
