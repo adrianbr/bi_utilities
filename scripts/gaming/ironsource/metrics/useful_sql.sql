@@ -152,4 +152,13 @@ left join tenjin_cohort_metrics as tcm
 on tcm.country = tm.country
 and tcm.site_id = tm.site_id
 and tcm.campaign_name = tm.campaign_name
-and tcm.date = tm.date
+and tcm.date = tm.date;
+
+
+
+
+
+
+
+
+-
