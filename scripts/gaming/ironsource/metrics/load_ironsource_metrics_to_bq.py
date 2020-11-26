@@ -17,7 +17,7 @@ filename = ironsource_metrics_download.get_ironsrc_metrics_file(secretkey, refre
 bucket = 'datateam_bucket'
 filename_on_bucket = filename
 dataset = 'get-data-team.tenjin_dv_test'
-table_name = 'ironsource_metrics'
+table_name = 'ironsource_metrics_v6'
 
 
 local_ironscr_metrics_file_to_bq(filename, bucket, filename_on_bucket, dataset, table_name)

@@ -28,38 +28,43 @@ def get_ironsrc_metrics(token_, start_date, end_date):
     end_date: same as start date
     :return data in list of json"""
 
-    #impressions, clicks, completions, installs, spend
+    #impressions, clicks, completions, installs, spend, revenue
     #day, campaign, title, application, country, os,  deviceType, creative, adUnit
+    #breakdowns = 'day,campaign,title,application,country,os,deviceType,creative,adUnit'
 
-    url_request = f"""https://api.ironsrc.com/advertisers/v2/reports?\
-breakdowns=day,campaign,title,application,country,os,deviceType,creative,adUnit\
-&metrics=impressions,clicks,completions,installs,spend\
-&format=json\
-&startDate={start_date}\
-&endDate={end_date}"""
+    #metrics = 'impressions,clicks,completions,installs,spend,revenue,eCPM'
+
+    #url_request = f"""https://api.ironsrc.com/advertisers/v2/reports?breakdowns={breakdowns}&metrics={metrics}&format=json&startDate={start_date}&endDate={end_date}"""
+
+    # v6 but getting status code 500
+    breakdowns = 'date,app,country,platform,adUnits,placement'
+    metrics = 'revenue,impressions,eCPM,activeUsers,engagedUsers,engagedUsersRate,impressionsPerEngagedUser,revenuePerActiveUser,revenuePerEngagedUser,clicks,clickThroughRate,completionRate,adSourceChecks,adSourceResponses,adSourceAvailabilityRate,sessions,engagedSessions,impressionsPerSession,impressionPerEngagedSessions,sessionsPerActiveUser'
+    url_request = f"""https://platform.ironsrc.com/partners/publisher/mediation/applications/v6/stats?startDate={start_date}&endDate={end_date}&metrics={metrics}&breakdown={breakdowns}"""
+    #url_request = "https://platform.ironsrc.com/partners/publisher/mediation/applications/v6/stats?startDate=2018-08-01&endDate=2018-08-01&metrics=revenue,impressions,eCPM&breakdown=adUnits"
+
     headers = {'Authorization': 'Bearer ' + token_.replace('"', '')}
 
-    all_data = []
-    print(url_request)
-    #request the url above, and if there is a next page url, keep requesting
-    while url_request:
+    resp = requests.get(url_request, headers=headers)
+    print(resp.status_code)
 
-        resp = requests.get(url_request, headers=headers)
-        json_response = json.loads(resp.text.encode('utf8'))
-        #print(json_response)
-        #save data slice to out bucket
-        data = json_response.get('data')
-        if data:
-            all_data += data
+    data = resp.json()
+    out = []
 
-        #get the next link if available
-        next_page_link = json_response.get('paging', {}).get('next')
-        url_request = next_page_link
-        print(url_request)
+    for row in data:
+        #get row dimensions
+        dim_row = {key:value for key, value in row.items() if key !='data'}
+        for data_row in row.get('data'):
+            newrow = {**dim_row, **data_row}
+            out.append(newrow)
+        #print(row)
+        #print(dim_row)
+        #print(data_row)
+        #print(newrow)
 
-    #print(resp, resp.text)
-    #print(urls)
-    return all_data
+        #input("Press Enter to continue...")
+
+
+    return out
 
 def get_ironsrc_metrics_file(secretkey, refreshtoken, start_date, end_date):
     #get auth token
